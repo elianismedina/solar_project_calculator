@@ -1,0 +1,211 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<!-- Leaflet Map CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="mb-4">
+    <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">&larr; Back to Projects</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ project.name }}</h1>
+        {% if project.settings.location_name %}
+        <p class="text-muted mb-1"><i class="bi bi-geo-alt"></i> {{ project.settings.location_name }}</p>
+        {% endif %}
+        <p class="lead">{{ project.description }}</p>
+        <div class="mt-2">
+            <a href="{% url 'project_edit' project.pk %}" class="btn btn-outline-primary btn-sm">Edit Details</a>
+            <a href="{% url 'project_delete' project.pk %}" class="btn btn-outline-danger btn-sm">Delete Project</a>
+        </div>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'project_calculate' project.pk %}" class="btn btn-primary btn-lg">Run Calculation</a>
+    </div>
+</div>
+
+<hr>
+
+<div class="row mt-4">
+    <!-- Map Card -->
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div id="projectMap" style="height: 300px; border-radius: 0.375rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Settings Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Site Settings</h4>
+                <a href="{% url 'project_settings' project.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% if project.settings.location_name %}
+                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-geo-alt-fill"></i> <strong>{{ project.settings.location_name }}</strong></span>
+                        <a href="." class="btn btn-sm btn-link p-0 text-decoration-none" title="Refresh Location"><i class="bi bi-arrow-clockwise"></i></a>
+                    </li>
+                    {% endif %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Latitude:</span> <strong>{{ project.settings.latitude }}&deg;</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Longitude:</span> <strong>{{ project.settings.longitude }}&deg;</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Tilt Angle:</span> <strong>{{ project.settings.tilt_angle }}&deg;</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Azimuth:</span> <strong>{{ project.settings.azimuth_angle }}&deg;</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Electricity Rate:</span> <strong>${{ project.settings.electricity_rate }}/kWh</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Battery Backup:</span> <strong>{{ project.settings.autonomy_hours }} Hours</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumption Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Consumption</h4>
+                <a href="{% url 'project_consumption' project.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+            </div>
+            <div class="card-body">
+                {% if project.consumptions.all %}
+                    <ul class="list-group list-group-flush">
+                        {% for c in project.consumptions.all %}
+                        <li class="list-group-item d-flex justify-content-between py-1">
+                            <small>{{ c.month_name }}:</small> <strong>{{ c.kwh_value }} kWh</strong>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- System Design Summary -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h4 class="mb-0">System Overview</h4>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Solar Arrays</h5>
+                {% if panel_arrays %}
+                    <ul class="list-group mb-3">
+                        {% for array in panel_arrays %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{% if array.quantity > 0 %}{{ array.quantity }}x{% else %}Qty: TBD{% endif %}</strong> {{ array.panel.manufacturer }} {{ array.panel.model_name }}
+                                <br>
+                                <small class="text-muted">{{ array.orientation }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary rounded-pill">{{ array.panel.pmax }}W</span>
+                                <br>
+                                <a href="{% url 'project_panel_delete' array.pk %}" class="text-danger small ms-2">Remove</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted"><em>No panels added yet.</em></p>
+                {% endif %}
+
+                <h5 class="card-title mt-4">Inverters</h5>
+                {% if inverter_blocks %}
+                    <ul class="list-group mb-3">
+                        {% for block in inverter_blocks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{% if block.quantity > 0 %}{{ block.quantity }}x{% else %}Qty: TBD{% endif %}</strong> {{ block.inverter.manufacturer }} {{ block.inverter.model_name }}
+                                <br>
+                                <small class="text-muted">{{ block.inverter.inverter_type }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success rounded-pill">{{ block.inverter.rated_power_watts }}W</span>
+                                <br>
+                                <a href="{% url 'project_inverter_delete' block.pk %}" class="text-danger small ms-2">Remove</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted"><em>No inverters added yet.</em></p>
+                {% endif %}
+
+                <h5 class="card-title mt-4">Batteries</h5>
+                {% if battery_banks %}
+                    <ul class="list-group mb-3">
+                        {% for bank in battery_banks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{% if bank.quantity > 0 %}{{ bank.quantity }}x{% else %}Qty: TBD{% endif %}</strong> {{ bank.battery.manufacturer }} {{ bank.battery.model_name }}
+                                <br>
+                                <small class="text-muted">{{ bank.battery.chemistry }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-warning text-dark rounded-pill">{{ bank.battery.nominal_energy_wh }}Wh</span>
+                                <br>
+                                <a href="{% url 'project_battery_delete' bank.pk %}" class="text-danger small ms-2">Remove</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted"><em>No batteries added yet.</em></p>
+                {% endif %}
+                
+                <div class="d-grid gap-2">
+                    {% if not panel_arrays %}
+                    <a href="{% url 'project_panel_add' project.pk %}" class="btn btn-outline-primary btn-sm">Add Panels</a>
+                    {% endif %}
+                    {% if not inverter_blocks %}
+                    <a href="{% url 'project_inverter_add' project.pk %}" class="btn btn-outline-primary btn-sm">Add Inverters</a>
+                    {% endif %}
+                    {% if not battery_banks %}
+                    <a href="{% url 'project_battery_add' project.pk %}" class="btn btn-outline-primary btn-sm">Add Batteries</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const lat = {{ project.settings.latitude }};
+        const lon = {{ project.settings.longitude }};
+        
+        // Default to a safe view if coordinates are 0,0
+        const map = L.map('projectMap').setView([lat, lon], (lat === 0 && lon === 0) ? 2 : 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        if (lat !== 0 || lon !== 0) {
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup('{{ project.name }}')
+                .openPopup();
+        }
+    });
+</script>
+{% endblock %}

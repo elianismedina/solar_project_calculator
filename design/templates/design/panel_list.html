@@ -1,0 +1,46 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Panel Catalog</h1>
+    <a href="{% url 'panel_create' %}" class="btn btn-success">+ New Panel Definition</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Manufacturer</th>
+                <th>Model</th>
+                <th>Pmax (W)</th>
+                <th>Voc (V)</th>
+                <th>Isc (A)</th>
+                <th>Efficiency (%)</th>
+                <th>Dimensions (mm)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for panel in panels %}
+            <tr>
+                <td>{{ panel.manufacturer }}</td>
+                <td>{{ panel.model_name }}</td>
+                <td>{{ panel.pmax }}</td>
+                <td>{{ panel.voc }}</td>
+                <td>{{ panel.isc }}</td>
+                <td>{{ panel.efficiency }}</td>
+                <td>{{ panel.length_mm }} x {{ panel.width_mm }} x {{ panel.thickness_mm|default:"-" }}</td>
+                <td>
+                    <a href="{% url 'panel_edit' panel.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a href="{% url 'panel_delete' panel.pk %}" class="btn btn-sm btn-outline-danger">Del</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">No panels defined yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

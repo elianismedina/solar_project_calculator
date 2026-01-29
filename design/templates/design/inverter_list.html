@@ -1,0 +1,44 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Inverter Catalog</h1>
+    <a href="{% url 'inverter_create' %}" class="btn btn-success">+ New Inverter Definition</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Manufacturer</th>
+                <th>Model</th>
+                <th>Type</th>
+                <th>Rated Power (W)</th>
+                <th>Battery Voltage</th>
+                <th>Solar Max PV (W)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inverter in inverters %}
+            <tr>
+                <td>{{ inverter.manufacturer }}</td>
+                <td>{{ inverter.model_name }}</td>
+                <td><span class="badge bg-secondary">{{ inverter.inverter_type }}</span></td>
+                <td>{{ inverter.rated_power_watts }}</td>
+                <td>{{ inverter.battery_voltage_nominal }}</td>
+                <td>{{ inverter.pv_max_power_watts }}</td>
+                <td>
+                    <a href="{% url 'inverter_edit' inverter.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a href="{% url 'inverter_delete' inverter.pk %}" class="btn btn-sm btn-outline-danger">Del</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">No inverters defined yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

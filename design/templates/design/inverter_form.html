@@ -1,0 +1,140 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Define New Inverter</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Manufacturer</label>
+                            {{ form.manufacturer }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Model Name</label>
+                            {{ form.model_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Inverter Type</label>
+                            {{ form.inverter_type }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Inverter Output -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Inverter Output</h5>
+                            <div class="mb-2">
+                                <label class="form-label small">Rated Power (W)</label>
+                                {{ form.rated_power_watts }}
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Surge Rating (W)</label>
+                                {{ form.surge_rating_watts }}
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Motor Start Capacity (HP)</label>
+                                {{ form.motor_start_hp }}
+                            </div>
+                        </div>
+
+                        <!-- Battery & AC Input -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Battery & AC Input</h5>
+                            <div class="mb-2">
+                                <label class="form-label small">Battery Voltage Nominal</label>
+                                {{ form.battery_voltage_nominal }}
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">AC Nom. Volt (V)</label>
+                                    {{ form.ac_nominal_voltage }}
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">AC Max Volt (V)</label>
+                                    {{ form.ac_max_voltage }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">AC Freq (Hz)</label>
+                                    {{ form.ac_input_frequency }}
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">AC Efficiency (%)</label>
+                                    {{ form.ac_efficiency }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Solar Charger -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Solar Charger</h5>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">Max PV Power (W)</label>
+                                    {{ form.pv_max_power_watts }}
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">Max Charge Curr (A)</label>
+                                    {{ form.pv_max_charge_current }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">DC Volt / MPPT (V)</label>
+                                    {{ form.pv_dc_voltage_nominal }}
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">Max Solar Volt (V)</label>
+                                    {{ form.pv_max_input_voltage }}
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Max Efficiency (%)</label>
+                                {{ form.pv_max_efficiency }}
+                            </div>
+                        </div>
+
+                        <!-- Charge Mode & Dimensions -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Charge Mode & Dimensions</h5>
+                            <div class="mb-3">
+                                <label class="form-label small">Max Total Charge Current (A)</label>
+                                {{ form.max_charge_current_total }}
+                            </div>
+                            <div class="row">
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Width (mm)</label>
+                                    {{ form.width_mm }}
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Height (mm)</label>
+                                    {{ form.height_mm }}
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Depth (mm)</label>
+                                    {{ form.depth_mm }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Save Inverter Definition</button>
+                        <a href="{% url 'inverter_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

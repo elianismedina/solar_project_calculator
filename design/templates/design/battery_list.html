@@ -1,0 +1,46 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Battery Catalog</h1>
+    <a href="{% url 'battery_create' %}" class="btn btn-success">+ New Battery Definition</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Manufacturer</th>
+                <th>Model</th>
+                <th>Voltage (V)</th>
+                <th>Capacity (Ah)</th>
+                <th>Energy (kWh)</th>
+                <th>Cycles</th>
+                <th>Warranty</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for battery in batteries %}
+            <tr>
+                <td>{{ battery.manufacturer }}</td>
+                <td>{{ battery.model_name }}</td>
+                <td>{{ battery.nominal_voltage }}</td>
+                <td>{{ battery.nominal_capacity_ah }}</td>
+                <td>{{ battery.nominal_energy_wh|floatformat:0|add:"/1000" }}</td>
+                <td>{{ battery.life_cycles }}</td>
+                <td>{{ battery.warranty_years }} yrs</td>
+                <td>
+                    <a href="{% url 'battery_edit' battery.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a href="{% url 'battery_delete' battery.pk %}" class="btn btn-sm btn-outline-danger">Del</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">No batteries defined yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

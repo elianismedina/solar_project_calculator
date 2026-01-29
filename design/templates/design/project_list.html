@@ -1,0 +1,27 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Solar Projects</h1>
+    <a href="{% url 'project_create' %}" class="btn btn-success">+ New Project</a>
+</div>
+
+<div class="row">
+    {% for project in projects %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ project.name }}</h5>
+                <p class="card-text text-muted">{{ project.created_at|date:"M d, Y" }}</p>
+                <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+                <a href="{% url 'project_detail' project.pk %}" class="btn btn-primary">Open Dashboard</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No projects found. Start by creating one!</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

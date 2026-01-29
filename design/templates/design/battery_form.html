@@ -1,0 +1,114 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Define New Battery</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Manufacturer</label>
+                            {{ form.manufacturer }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Model Name</label>
+                            {{ form.model_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Chemistry</label>
+                            {{ form.chemistry }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Electrical Parameters -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Electrical Parameters</h5>
+                            <div class="mb-2">
+                                <label class="form-label small">Nominal Voltage (V)</label>
+                                {{ form.nominal_voltage }}
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Nominal Capacity (Ah)</label>
+                                {{ form.nominal_capacity_ah }}
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Nominal Energy (Wh)</label>
+                                {{ form.nominal_energy_wh }}
+                            </div>
+                        </div>
+
+                        <!-- Performance & Charging -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Performance & Charging</h5>
+                            <div class="mb-2">
+                                <label class="form-label small">Life Cycles</label>
+                                {{ form.life_cycles }}
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">Rec. Charge Volt (V)</label>
+                                    {{ form.rec_charge_voltage }}
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small">Rec. Charge Curr (A)</label>
+                                    {{ form.rec_charge_current }}
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">End of Discharge Volt (V)</label>
+                                {{ form.end_of_discharge_voltage }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Dimensions & Weight -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Dimensions & Weight</h5>
+                            <div class="row">
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Width (mm)</label>
+                                    {{ form.width_mm }}
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Height (mm)</label>
+                                    {{ form.height_mm }}
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <label class="form-label small">Depth (mm)</label>
+                                    {{ form.depth_mm }}
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Weight (kg)</label>
+                                {{ form.weight_kg }}
+                            </div>
+                        </div>
+
+                        <!-- Warranty -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="border-bottom pb-2">Warranty</h5>
+                            <div class="mb-3">
+                                <label class="form-label small">Warranty (Years)</label>
+                                {{ form.warranty_years }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Save Battery Definition</button>
+                        <a href="{% url 'battery_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

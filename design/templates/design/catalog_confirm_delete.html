@@ -1,0 +1,23 @@
+{% extends 'design/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Delete Catalog Item</h4>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the definition for <strong>"{{ object }}"</strong> from the catalog?</p>
+                <p class="text-warning">Note: This may fail if this item is currently used in active projects.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Permanently Delete</button>
+                    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
