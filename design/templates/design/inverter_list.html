@@ -10,6 +10,7 @@
     <table class="table table-hover">
         <thead>
             <tr>
+                <th>Image</th>
                 <th>Manufacturer</th>
                 <th>Model</th>
                 <th>Type</th>
@@ -22,6 +23,13 @@
         <tbody>
             {% for inverter in inverters %}
             <tr>
+                <td>
+                    {% if inverter.image %}
+                        <img src="{{ inverter.image.url }}" alt="{{ inverter.model_name }}" style="height: 50px; width: auto;">
+                    {% else %}
+                        <span class="text-muted">No Image</span>
+                    {% endif %}
+                </td>
                 <td>{{ inverter.manufacturer }}</td>
                 <td>{{ inverter.model_name }}</td>
                 <td><span class="badge bg-secondary">{{ inverter.inverter_type }}</span></td>

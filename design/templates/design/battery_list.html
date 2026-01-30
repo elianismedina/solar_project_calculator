@@ -10,6 +10,7 @@
     <table class="table table-hover">
         <thead>
             <tr>
+                <th>Image</th>
                 <th>Manufacturer</th>
                 <th>Model</th>
                 <th>Voltage (V)</th>
@@ -23,6 +24,13 @@
         <tbody>
             {% for battery in batteries %}
             <tr>
+                <td>
+                    {% if battery.image %}
+                        <img src="{{ battery.image.url }}" alt="{{ battery.model_name }}" style="height: 50px; width: auto;">
+                    {% else %}
+                        <span class="text-muted">No Image</span>
+                    {% endif %}
+                </td>
                 <td>{{ battery.manufacturer }}</td>
                 <td>{{ battery.model_name }}</td>
                 <td>{{ battery.nominal_voltage }}</td>

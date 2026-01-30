@@ -4,6 +4,7 @@ from django.utils import timezone
 class Panel(models.Model):
     manufacturer = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='panels/', null=True, blank=True)
     
     # Electrical Parameters
     pmax = models.FloatField(help_text="Maximum Power (Pmax) in Watts", default=0.0)
@@ -12,6 +13,8 @@ class Panel(models.Model):
     vmpp = models.FloatField(help_text="Voltage at Maximum Power (Vmpp) in Volts", default=0.0)
     impp = models.FloatField(help_text="Current at Maximum Power (Impp) in Amps", default=0.0)
     efficiency = models.FloatField(help_text="Module Efficiency (%)", default=0.0)
+    temp_coeff_voc = models.FloatField(help_text="Temp. Coeff of Voc (%/°C)", default=-0.3, null=True, blank=True)
+    temp_coeff_pmax = models.FloatField(help_text="Temp. Coeff of Pmax (%/°C)", default=-0.4, null=True, blank=True)
 
     # Mechanical Characteristics
     length_mm = models.FloatField(help_text="Length in mm", default=0.0)
@@ -33,6 +36,7 @@ class Inverter(models.Model):
     manufacturer = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     inverter_type = models.CharField(max_length=20, choices=INVERTER_TYPES, default='Offgrid')
+    image = models.ImageField(upload_to='inverters/', null=True, blank=True)
     
     # Inverter Output
     rated_power_watts = models.FloatField(help_text="Rated power in Watts", default=0.0)
@@ -54,6 +58,7 @@ class Inverter(models.Model):
     
     # Solar Charger
     pv_max_power_watts = models.FloatField(help_text="Maximum PV array power (W)", default=0.0)
+    pv_max_input_current = models.FloatField(help_text="Maximum PV input current (A)", default=0.0)
     pv_max_charge_current = models.FloatField(help_text="Maximum PV Charge current (A)", default=0.0)
     pv_dc_voltage_nominal = models.FloatField(help_text="DC voltage / MPPT Range (V)", default=0.0)
     pv_max_input_voltage = models.FloatField(help_text="Maximum solar input voltage (V)", default=0.0)
@@ -75,6 +80,7 @@ class Inverter(models.Model):
 class Battery(models.Model):
     manufacturer = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='batteries/', null=True, blank=True)
     
     # Electrical Parameters
     nominal_voltage = models.FloatField(help_text="Nominal voltage (V)", default=0.0)
@@ -118,6 +124,7 @@ class ProjectSettings(models.Model):
     azimuth_angle = models.FloatField(default=180.0, help_text="Panel azimuth angle (180=South)")
     electricity_rate = models.FloatField(default=0.15, help_text="Cost per kWh")
     autonomy_hours = models.FloatField(default=8.0, help_text="Desired battery backup hours (e.g. 8.0)")
+    hsp_min = models.FloatField(default=4.5, help_text="Minimum Peak Sun Hours (HSP) for sizing")
 
     def __str__(self):
         return f"Settings for {self.project.name}"

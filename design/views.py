@@ -136,6 +136,36 @@ class ProjectSettingsUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('project_detail', kwargs={'pk': self.kwargs['pk']})
 
+
+def fetch_hsp_view(request, pk):
+    """
+    View to dynamically fetch HSP and update the project setting.
+    """
+    project = get_object_or_404(Project, pk=pk)
+    settings = project.settings
+    
+    from .services import get_min_hsp_from_location
+    
+    hsp = get_min_hsp_from_location(
+        settings.latitude,
+        settings.longitude,
+        settings.tilt_angle,
+        settings.azimuth_angle
+    )
+    
+    if hsp is not None:
+        settings.hsp_min = hsp
+        settings.save()
+        # Optionally, add a success message to the session
+        # messages.success(request, f"HSP updated to {hsp}")
+    else:
+        # Optionally, add an error message
+        # messages.error(request, "Could not fetch HSP data.")
+        pass
+
+    return redirect('project_settings', pk=project.pk)
+
+
 class ProjectPanelArrayCreateView(CreateView):
     model = ProjectPanelArray
     form_class = ProjectPanelArrayForm

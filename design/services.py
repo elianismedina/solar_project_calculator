@@ -67,6 +67,49 @@ def get_consumption_forecast(project, location_name):
     while len(base) < 12: base.append(avg_hist)
     return base[:12]
 
+def get_min_hsp_from_location(latitude, longitude, tilt, azimuth):
+    """
+    Calculates the minimum monthly average Peak Sun Hours (HSP) for a given location and panel orientation.
+    Uses PVGIS TMY data.
+    """
+    try:
+        # Get TMY data from PVGIS, being robust to the number of returned values
+        pvgis_data = pvlib.iotools.get_pvgis_tmy(
+            latitude, longitude, outputformat='json', usehorizon=True, url='https://re.jrc.ec.europa.eu/api/v5_2/', timeout=30
+        )
+        tmy_data = pvgis_data[0]  # The first element is always the data DataFrame
+        tmy_data.index = tmy_data.index.tz_convert('UTC')
+
+        # Get solar position
+        solar_position = pvlib.solarposition.get_solarposition(tmy_data.index, latitude, longitude)
+
+        # Calculate POA (Plane of Array) irradiance
+        poa_irradiance = pvlib.irradiance.get_total_irradiance(
+            surface_tilt=tilt,
+            surface_azimuth=azimuth,
+            solar_zenith=solar_position['apparent_zenith'],
+            solar_azimuth=solar_position['azimuth'],
+            dni=tmy_data['dni'],
+            ghi=tmy_data['ghi'],
+            dhi=tmy_data['dhi']
+        )
+        
+        # Group by month and calculate daily average irradiance (Wh/m^2/day)
+        # POA global is in W/m^2. Summing over an hour gives Wh/m^2.
+        monthly_avg_daily_poa = poa_irradiance['poa_global'].resample('D').sum().resample('ME').mean()
+
+        # HSP is daily irradiance in kWh/m^2/day, which is equivalent to Wh/m^2/day / 1000
+        monthly_hsp = monthly_avg_daily_poa / 1000
+
+        # Find the minimum monthly HSP
+        min_hsp = monthly_hsp.min()
+
+        return round(min_hsp, 2) if not pd.isna(min_hsp) else None
+
+    except Exception as e:
+        print(f"HSP Calculation Error: {e}")
+        return None
+
 def calculate_project_energy(project_id):
     project = Project.objects.get(pk=project_id)
     settings = project.settings
@@ -88,7 +131,8 @@ def calculate_project_energy(project_id):
     total_dc_power_watts = 0
     for array in panel_arrays:
         if avg_daily_kwh > 0:
-            target_kw_total = (avg_daily_kwh * SAFETY_MARGIN) / 4.0 
+            hsp = settings.hsp_min or 4.5 # Use setting or fallback
+            target_kw_total = (avg_daily_kwh * SAFETY_MARGIN) / hsp
             target_kw = max(0.5, target_kw_total) / max(1, panel_arrays.count())
             array.quantity = math.ceil((target_kw * 1000) / array.panel.pmax)
             array.save()
@@ -177,8 +221,88 @@ def calculate_project_energy(project_id):
         compatibility_checks.append({'label': 'Charge Current Limit', 'passed': current_safe, 'desc': f"Inv: {main_inv.max_charge_current_total}A. Bank: {main_bat.rec_charge_current * bat_qty}A.", 'fix': "Adjust current."})
 
     system_details = []
+    string_layouts = []
     for array in panel_arrays:
         system_details.append({'type': 'Panel Array', 'name': str(array.panel), 'qty': array.quantity, 'metric': 'Solar Source'})
+        
+        # Rigorous String Layout Calculation based on provided Steps 1-4
+        if inverter_blocks.exists():
+            inv = inverter_blocks.first().inverter
+            pan = array.panel
+            num_modulos = array.quantity
+
+            # Parameters
+            t_min = -10
+            t_stc = 25
+            coeff_voc_abs = abs(pan.temp_coeff_voc / 100) if pan.temp_coeff_voc else 0.003
+            vmppt_min = inv.pv_dc_voltage_nominal
+            vdc_max = inv.pv_max_input_voltage
+            i_limit = inv.pv_max_input_current or inv.pv_max_charge_current or 50.0
+            isc_safety = pan.isc * 1.25 # Safety factor for current
+
+            # Paso 1 – Generar combinaciones posibles (Symmetrical only)
+            opciones = []
+            for ns in range(1, num_modulos + 1):
+                if num_modulos % ns == 0:
+                    np = num_modulos // ns
+                    opciones.append((ns, np))
+
+            # Paso 2 & 3 – Filtrar por tensión mínima/máxima y corriente
+            voc_frio = pan.voc * (1 + coeff_voc_abs * (t_stc - t_min))
+            validas = []
+
+            for ns, np in opciones:
+                # Regla 1 – Tensión mínima en MPPT
+                if ns * pan.vmpp < vmppt_min:
+                    continue
+                
+                # Regla 2 – Tensión máxima en frío
+                if ns * voc_frio > vdc_max:
+                    continue
+                
+                # Regla 3 – Corriente máxima por MPPT
+                if np * isc_safety > i_limit:
+                    continue
+                
+                validas.append((ns, np))
+
+            # Paso 4 – Evaluar y Priorizar (Regla 4: Más en serie)
+            if validas:
+                # Sort by ns descending to prioritize more modules in series
+                validas.sort(key=lambda x: x[0], reverse=True)
+                best_ns, best_np = validas[0]
+                
+                string_layouts.append({
+                    'panel_name': str(pan),
+                    'total_panels': num_modulos,
+                    'num_strings': best_np,
+                    'panels_per_string': best_ns,
+                    'note': f"Optimized: {best_np} symmetrical string(s) of {best_ns} panels.",
+                    'limits': f"Vdc_max: {vdc_max}V | Imax_MPPT: {i_limit}A"
+                })
+            else:
+                # Diagnostics
+                error_parts = []
+                # Find why common options fail
+                for ns, np in opciones:
+                    if ns * voc_frio > vdc_max: 
+                        reason = f"{ns} in series exceeds MaxV ({round(ns*voc_frio,1)}V > {vdc_max}V)"
+                    elif ns * pan.vmpp < vmppt_min:
+                        reason = f"{ns} in series below MPPT Min ({round(ns*pan.vmpp,1)}V < {vmppt_min}V)"
+                    elif np * isc_safety > i_limit:
+                        reason = f"{np} parallel exceeds MaxI ({round(np*isc_safety,1)}A > {i_limit}A)"
+                    else:
+                        reason = "Unknown error"
+                    error_parts.append(f"({ns}x{np}): {reason}")
+
+                string_layouts.append({
+                    'panel_name': str(pan),
+                    'total_panels': num_modulos,
+                    'error': "No symmetrical configuration fits the electrical limits.",
+                    'limits': f"Vdc_max: {vdc_max}V | Imax_MPPT: {i_limit}A",
+                    'note': "Check logs: " + " | ".join(error_parts[:2])
+                })
+
     for block in inverter_blocks:
         system_details.append({'type': 'Inverter', 'name': str(block.inverter), 'qty': block.quantity, 'metric': f"{block.inverter.rated_power_watts * block.quantity}W AC"})
     for bank in battery_banks:
@@ -200,6 +324,7 @@ def calculate_project_energy(project_id):
             'consumption': [round(float(v), 2) for v in full_year_consumption]
         },
         'details': system_details,
+        'string_layouts': string_layouts,
         'inverter_analysis': inverter_analysis,
         'compatibility_checks': compatibility_checks,
         'location': location_name,

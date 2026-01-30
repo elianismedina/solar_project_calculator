@@ -8,18 +8,22 @@
                 <h2 class="mb-0">Define New Panel</h2>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <h5 class="mb-3 border-bottom pb-2">General Information</h5>
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Manufacturer</label>
                             {{ form.manufacturer }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Model Name</label>
                             {{ form.model_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Image</label>
+                            {{ form.image }}
                         </div>
                     </div>
 

@@ -10,15 +10,55 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}
-                        <div class="form-text">{{ field.help_text }}</div>
-                        {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.latitude.label }}</label>
+                            {{ form.latitude }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.longitude.label }}</label>
+                            {{ form.longitude }}
+                        </div>
                     </div>
-                    {% endfor %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.location_name.label }}</label>
+                        {{ form.location_name }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.tilt_angle.label }}</label>
+                            {{ form.tilt_angle }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.azimuth_angle.label }}</label>
+                            {{ form.azimuth_angle }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.electricity_rate.label }}</label>
+                        {{ form.electricity_rate }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.autonomy_hours.label }}</label>
+                        {{ form.autonomy_hours }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.hsp_min.label }}</label>
+                        <div class="input-group">
+                            {{ form.hsp_min }}
+                            <a href="{% url 'project_settings_fetch_hsp' object.project.pk %}" class="btn btn-outline-primary" title="Dynamically calculate based on location">
+                                <i class="bi bi-calculator"></i> Fetch
+                            </a>
+                        </div>
+                        <div class="form-text">Minimum Peak Sun Hours for initial sizing.</div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Update Settings</button>
                     <a href="{% url 'project_detail' object.project.pk %}" class="btn btn-secondary">Back to Dashboard</a>
                 </form>

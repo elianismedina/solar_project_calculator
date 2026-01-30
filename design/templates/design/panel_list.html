@@ -10,6 +10,7 @@
     <table class="table table-hover">
         <thead>
             <tr>
+                <th>Image</th>
                 <th>Manufacturer</th>
                 <th>Model</th>
                 <th>Pmax (W)</th>
@@ -23,6 +24,13 @@
         <tbody>
             {% for panel in panels %}
             <tr>
+                <td>
+                    {% if panel.image %}
+                        <img src="{{ panel.image.url }}" alt="{{ panel.model_name }}" style="height: 50px; width: auto;">
+                    {% else %}
+                        <span class="text-muted">No Image</span>
+                    {% endif %}
+                </td>
                 <td>{{ panel.manufacturer }}</td>
                 <td>{{ panel.model_name }}</td>
                 <td>{{ panel.pmax }}</td>

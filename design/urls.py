@@ -8,6 +8,7 @@ urlpatterns = [
     path('<int:pk>/edit/', views.ProjectUpdateView.as_view(), name='project_edit'),
     path('<int:pk>/delete/', views.ProjectDeleteView.as_view(), name='project_delete'),
     path('<int:pk>/settings/', views.ProjectSettingsUpdateView.as_view(), name='project_settings'),
+    path('<int:pk>/settings/fetch-hsp/', views.fetch_hsp_view, name='project_settings_fetch_hsp'),
     path('<int:pk>/consumption/', views.ProjectConsumptionUpdateView.as_view(), name='project_consumption'),
     path('<int:pk>/calculate/', views.run_calculation_view, name='project_calculate'),
     path('<int:project_pk>/panels/add/', views.ProjectPanelArrayCreateView.as_view(), name='project_panel_add'),

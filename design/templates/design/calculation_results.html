@@ -93,6 +93,50 @@
             </table>
         </div>
 
+        <!-- String Layout Recommendation -->
+        {% if results.string_layouts %}
+        <h4 class="mt-5 border-bottom pb-2">Recommended String Layout</h4>
+        <div class="row">
+            {% for layout in results.string_layouts %}
+            <div class="col-md-6 mb-3">
+                <div class="card bg-light border-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ layout.panel_name }}</h5>
+                        {% if layout.error %}
+                            <div class="alert alert-danger py-2">
+                                <i class="bi bi-exclamation-triangle"></i> {{ layout.error }}
+                            </div>
+                        {% else %}
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="h3 mb-0">{{ layout.num_strings }}</div>
+                                    <div class="small text-muted">Strings</div>
+                                </div>
+                                <div class="text-primary h2">
+                                    <i class="bi bi-arrow-right"></i>
+                                </div>
+                                <div class="text-end">
+                                    <div class="h3 mb-0">{{ layout.panels_per_string }}</div>
+                                    <div class="small text-muted">Panels per String</div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-white border rounded text-center mb-2">
+                                <strong>Total: {{ layout.total_panels }} Panels</strong>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mt-3">
+                            <p class="small text-muted mb-0"><i class="bi bi-info-circle"></i> {{ layout.note|default:layout.limits }}</p>
+                            {% if not layout.error %}
+                            <p class="small text-muted mb-0 font-monospace">{{ layout.limits }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Inverter Validation Section -->
         {% if results.inverter_analysis %}
         <div class="card mt-4 border-{{ results.inverter_analysis.color }}">
